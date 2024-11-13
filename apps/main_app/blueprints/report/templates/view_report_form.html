@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Generation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
+    <style>
+        /* Optional custom styling */
+        .form-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">Employee mode</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.auth_logout_handler') }}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Page Content -->
+<div class="d-flex justify-content-center align-items-center flex-grow-1">
+    <div class="form-container p-5 shadow-lg">
+        <h2 class="text-center mb-4">Generate Report</h2>
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if message %}
+        <div class="alert alert-primary" role="alert">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        <!-- Report generation form -->
+        <form class="mt-4" action="" method="POST">
+            <!-- Scenario Selection -->
+            <div class="mb-4">
+                <label for="report_scenario" class="form-label">Select Report Scenario</label>
+                <select class="form-select" id="report_scenario" name="report_scenario" required>
+                    <option value="" disabled selected>Choose a scenario...</option>
+                    {% for scenario_data in scenarios %}
+                    <option value="{{ scenario_data[0] }}">{{ scenario_data[1] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Month and Year Selection -->
+            <div class="mb-4">
+                <label for="report_date" class="form-label">Select Month and Year</label>
+                <input type="text" class="form-control" id="report_date" name="report_date" required placeholder="MM/YYYY">
+            </div>
+
+            <!-- Generate Button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Generate Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap JS and Datepicker JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#report_date').datepicker({
+            format: "mm/yyyy",
+            startView: "months",
+            minViewMode: "months",
+            autoclose: true
+        });
+    });
+</script>
+</body>
+</html>
+

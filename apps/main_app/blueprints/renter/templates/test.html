@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Карта с адресами</title>
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script>
+        function initMap(addresses) {
+            var myMap = new ymaps.Map("map", {
+                center: [55.751574, 37.573856],
+                zoom: 10
+            });
+
+            var selectedAddresses = [];
+
+            addresses.forEach(function(item) {
+                var placemark = new ymaps.Placemark(item.coordinates, {
+                    balloonContent: item.address
+                }, {
+                    preset: 'islands#icon',
+                    iconColor: '#0095b6'
+                });
+
+                // Добавляем обработчик на клик по метке для выбора
+                placemark.events.add('click', function (e) {
+                    if (selectedAddresses.includes(item.address)) {
+                        // Если адрес уже выбран, снимаем выбор
+                        selectedAddresses = selectedAddresses.filter(addr => addr !== item.address);
+                        placemark.options.set('iconColor', '#0095b6');
+                    } else {
+                        // Если адрес не выбран, выбираем его
+                        selectedAddresses.push(item.address);
+                        placemark.options.set('iconColor', '#ff0000'); // Меняем цвет при выборе
+                    }
+
+                    console.log('Selected Addresses:', selectedAddresses);
+                });
+
+                myMap.geoObjects.add(placemark);
+            });
+
+            // Отправка выбранных адресов на сервер
+            document.getElementById('submitAddresses').addEventListener('click', function() {
+                fetch('/process_addresses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ selectedAddresses: selectedAddresses })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response from server:', data);
+                });
+            });
+        }
+
+        // Подгружаем карту после загрузки данных
+        window.onload = function() {
+            fetch('/get_coordinates')
+                .then(response => response.json())
+                .then(data => {
+                    initMap(data);
+                });
+        };
+    </script>
+</head>
+<body>
+    <h1>Выберите адреса на карте</h1>
+    <div id="map" style="width: 100%; height: 500px;"></div>
+    <button id="submitAddresses">Отправить выбранные адреса</button>
+</body>
+</html>

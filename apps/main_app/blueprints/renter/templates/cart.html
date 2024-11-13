@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="container my-5">
+    <h2 class="mb-4">Your Cart</h2>
+
+    <!-- Если корзина пустая, покажем сообщение -->
+    {% if cart_items %}
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th scope="col">Billboard ID</th>
+            <th scope="col">Rental Period</th>
+            <th scope="col">Price per Month</th>
+            <th scope="col">Total</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Цикл для отображения каждого элемента в корзине -->
+          {% for item in cart_items %}
+            <tr class="table-row">
+              <td>{{ item.billboard_id }}</td>
+              <td>
+                {{ item.start_month }}/{{ item.start_year }} - {{ item.end_month }}/{{ item.end_year }}
+              </td>
+              <td>$ {{ item.price_per_month }}</td>
+              <td>
+                {% set months = (item.end_year - item.start_year) * 12 + (item.end_month - item.start_month + 1) %}
+                $ {{ months * item.price_per_month }}
+              </td>
+              <td>
+                <!-- Кнопка для удаления элемента из корзины -->
+                <form action= "{{ url_for('renter.remove_billboard_from_cart') }}" method="POST" style="display:inline;">
+                  <input type="hidden" name="order_id" value="{{ loop.index0 }}">
+                  <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Отображение общей суммы -->
+      <div class="text-end total-price mt-3">
+        <strong>Total Cost: $
+          {% set total = cart_items | map(attribute='price_per_month') | sum %}
+          {{ total }}
+        </strong>
+      </div>
+
+      <!-- Кнопка для оформления заказа -->
+      <div class="text-end mt-3">
+        <form action="{{ url_for('renter.checkout_handler') }}" method="POST">
+          <button type="submit" class="btn btn-primary">Proceed to Checkout</button>
+        </form>
+      </div>
+    {% else %}
+      <p class="text-center">Your cart is empty. Start adding billboards to your cart!</p>
+    {% endif %}
+  </section>
+
+  <!-- Подключаем Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
