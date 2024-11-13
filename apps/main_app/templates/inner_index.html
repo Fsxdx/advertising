@@ -1,0 +1,44 @@
+{% extends "inner_base.html" %}
+
+{% block content %}
+
+<!-- Dashboard Section -->
+<section class="container my-5">
+    <h2 class="text-center mb-4">Employee Actions</h2>
+    <div class="row text-center">
+        <!-- Perform Query Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Perform Billboard Query</h5>
+                    <p class="card-text">Search for billboards based on various parameters.</p>
+                    <a href="{{ url_for('query.handle_index') }}" class="btn btn-primary">Go to Query</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Report Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Generate Report</h5>
+                    <p class="card-text">Create custom reports based on rental and billboard data.</p>
+                    <a href="{{ url_for('report.create_get_handler') }}" class="btn btn-primary">Go to Reports</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other actions -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">View created reports</h5>
+                    <p class="card-text">Check created reports.</p>
+                    <a href="{{ url_for('report.view_get_handler') }}" class="btn btn-primary">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,1 @@
+select * from advertising.$table where year="$year" and month="$month"

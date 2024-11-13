@@ -1,0 +1,34 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-weight: 600;
+}
+
+form label {
+  font-weight: 500;
+}
+
+form .form-control,
+form .form-select {
+  background-color: #e9ecef;
+  border: none;
+}
+
+form .btn-primary {
+  padding: 10px 20px;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+section.container {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

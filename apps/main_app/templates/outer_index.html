@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<header class="hero-section text-center text-white bg-primary">
+    <div class="container">
+        <h1 class="display-4">Find the Perfect Billboard for Your Business</h1>
+        <p class="lead">Quick and easy billboard rentals across the city</p>
+    </div>
+</header>
+
+
+<!-- Каталог билбордов -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center">Available Billboards</h2>
+        <div class="row mt-4">
+            <!-- Один из билбордов -->
+            {% for billboard in billboards %}
+            <div class="col-md-4">
+                <a class="card mb-4 link-dark" style="text-decoration:none" href="{{ url_for('renter.get_billboard_details',  billboard_id=billboard.billboard_id) }}">
+                        {% if billboard.img_path %}
+                        <img src="{{ url_for('renter.static', filename=billboard.img_path) }}" class="card-img-top"
+                             alt="Billboard Image">
+                        {% else %}
+                        <img src="https://via.placeholder.com/400x200" class="card-img-top" alt="Billboard Image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title" href="/">Billboard</h5>
+                        <p class="card-text">{{ billboard.billboard_address }}</p>
+                        <p class="card-text">Size: {{ billboard.size }}</p>
+                        <p class="card-text">Price: {{ billboard.price_per_month }}</p>
+                        <p class="card-text">Quality: {{ billboard.quality }}</p>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
