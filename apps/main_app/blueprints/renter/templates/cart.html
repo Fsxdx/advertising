@@ -44,7 +44,6 @@
       <!-- Отображение общей суммы -->
       <div class="text-end total-price mt-3">
         <strong>Total Cost: $
-          {% set total = cart_items | map(attribute='price_per_month') | sum %}
           {{ total }}
         </strong>
       </div>

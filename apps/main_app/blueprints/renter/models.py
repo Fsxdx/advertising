@@ -43,7 +43,8 @@ class Billboard(BaseModel, metaclass=MetaSQL):
 
     @classmethod
     def get_billboard(cls, billboard_id):
-        result = cls.fetch_one(Billboard.sql_provider.get('get_billboard.sql', billboard_id=billboard_id), current_app.config['db_config'][session['role']])
+        result = cls.fetch_one(Billboard.sql_provider.get('get_billboard.sql', billboard_id=billboard_id),
+                               current_app.config['db_config'][session['role']])
         if result:
             return Billboard(*result)
         return result
@@ -59,13 +60,45 @@ class Billboard(BaseModel, metaclass=MetaSQL):
                                 current_app.config['db_config'][session['role']])
         if result:
             return list(map(lambda x:
-                            {'start': {'month': x[0], 'year': x[1]},
-                             'end': {'month': x[2], 'year': x[3]}},
+                            {'start': datetime.strptime(f"{x[0]}/{x[1]}", "%m/%Y"),
+                             'end': datetime.strptime(f"{x[2]}/{x[3]}", "%m/%Y")},
                             result))
         return result
 
 
 class OrderHandler(BaseModel, metaclass=MetaSQL):
+    @classmethod
+    def check_input(cls, start_date, end_date, billboard):
+        def is_valid_format(date_str: str) -> bool:
+            try:
+                datetime.strptime(date_str, "%m/%Y")
+                return True
+            except ValueError:
+                return False
+
+        if not is_valid_format(start_date):
+            raise ValueError(f"Некорректный формат даты: {start_date}. Ожидается MM/YYYY.")
+
+        if not is_valid_format(end_date):
+            raise ValueError(f"Некорректный формат даты: {end_date}. Ожидается MM/YYYY.")
+
+        start_date_obj = datetime.strptime(start_date, "%m/%Y")
+        end_date_obj = datetime.strptime(end_date, "%m/%Y")
+
+        if end_date_obj < start_date_obj:
+            raise ValueError("Конечная дата должна быть позже или равна начальной дате.")
+
+        occupied_periods = billboard.get_occupied_periods()
+
+        for period in occupied_periods:
+            period_start = period['start']
+            period_end = period['end']
+            if (period_start <= end_date_obj and start_date_obj <= period_end):
+                raise ValueError(
+                    f"Введенный период пересекается с занятым периодом: {period_start.strftime('%m/%Y')} - {period_end.strftime('%m/%Y')}")
+
+        return True
+
     @classmethod
     def save_order_row_in_cart(cls, billboard_id, start_month, start_year, end_month, end_year):
         if 'cart' not in session:
@@ -95,7 +128,7 @@ class CheckoutHandler(BaseModel, metaclass=MetaSQL):
         )
             for order in session['cart']]
 
-        with CheckoutHandler.transaction() as cursor:
+        with CheckoutHandler.transaction(current_app.config['db_config'][session['role']]) as cursor:
             order_id = cls.insert(CheckoutHandler.sql_provider.get(
                 'add_order.sql',
                 registration_date=datetime.now().date(),

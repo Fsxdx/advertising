@@ -1,15 +1,20 @@
-from flask import render_template, request
+from flask import render_template, request, session
+
+from apps.common.wrappers import role_required, login_required
 from . import query_app
 from .models import QueryHandler
 
 
 @query_app.route('/', methods=["GET"])
-def handle_index():
-    return render_template('query_index.html')
+def handle_index_query():
+    return render_template('query_index.html',
+                           role=session['role'])
+
 
 @query_app.route('/billboard_query', methods=["GET"])
 def billboard_get_handler():
-    return render_template('billboard_query_form.html')
+    return render_template('billboard_query_form.html',
+                           role=session['role'])
 
 
 @query_app.route('/billboard_query', methods=["POST"])
@@ -24,5 +29,9 @@ def billboard_post_handler():
         'max_size': request.form['max_size']
     })
     if result.status:
-        return render_template('billboard_query_result.html', search_results=result.result)
-    return render_template('billboard_query_form.html', error=result.error_message)
+        return render_template('billboard_query_result.html',
+                               role=session['role'],
+                               search_results=result.result)
+    return render_template('billboard_query_form.html',
+                           role=session['role'],
+                           error=result.error_message)

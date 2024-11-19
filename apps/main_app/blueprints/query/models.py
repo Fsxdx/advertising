@@ -31,6 +31,8 @@ class InfoResponse:
 class QueryHandler(BaseModel, metaclass=MetaSQL):
     @classmethod
     def process_user_input(cls, input_data: dict) -> InfoResponse:
+        print(input_data)
+        # TODO: Handle empty input
         sql_query = QueryHandler.sql_provider.get('select_billboard.sql',
                                                   min_price = input_data['min_price'],
                                                   max_price = input_data['max_price'],
