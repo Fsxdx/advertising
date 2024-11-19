@@ -62,20 +62,18 @@ def auth_login_post_handler() -> Response:
     if SessionManager.is_authorized():
         redirect('/')
 
-    auth_header = {
-        'Authorization': 'Basic ' + b64encode(
-            f"{request.form['email']}:{request.form['password']}".encode()).decode()
-    }
     result, error = process_api_response(
         method="get",
         url=f"{auth_url}/find_user",
-        headers=auth_header
+        headers={
+            'Authorization': 'Basic ' + b64encode(
+                f"{request.form['email']}:{request.form['password']}".encode()).decode()
+        }
     )
 
     if error:
         return render_template('auth_index.html', error=error)
 
-    # Данные успешно получены
     SessionManager.add_user_data(result['user_id'], result['role'])
     return redirect('/')
 

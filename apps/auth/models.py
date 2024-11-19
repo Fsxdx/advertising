@@ -5,6 +5,9 @@ from apps.common.database.base_model import BaseModel
 from typing import Optional, Union
 from apps.common.meta import MetaSQL
 
+# ruff | black
+# mypy (install hints)
+# isort
 
 class User(BaseModel, metaclass=MetaSQL):
     """Represents a user and provides methods to interact with user-related database operations."""
@@ -60,7 +63,7 @@ class User(BaseModel, metaclass=MetaSQL):
             password (str): Hashed password of the new renter.
             **kwargs: Additional user data to insert into the renter table.
         """
-        with User.transaction() as cursor:
+        with User.transaction(current_app.config['db_config']) as cursor:
             user_id = cls.insert(User.sql_provider.get(
                 'add_user.sql',
                 role=role,
