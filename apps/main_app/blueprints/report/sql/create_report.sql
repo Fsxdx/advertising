@@ -1,1 +1,0 @@
-call Advertising.$proc_name($year, $month)

@@ -1,7 +1,9 @@
+import logging
+from typing import Any
+
 import pymysql
 from pymysql import connect
 from pymysql.err import OperationalError
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +18,10 @@ class DBContextManager:
         db_config (dict): Database configuration.
     """
 
-    def __init__(self, db_config: dict):
-        self.connector: pymysql.connections.Connection = None
-        self.cursor: pymysql.cursors.Cursor = None
-        self.db_config: dict = db_config
+    def __init__(self, db_config: dict[str, str]):
+        self.connector: pymysql.connections.Connection[Any] | None = None
+        self.cursor: pymysql.cursors.Cursor | None = None
+        self.db_config: dict[str, str] = db_config
 
     def __enter__(self) -> pymysql.cursors.Cursor | None:
         """
@@ -39,9 +41,12 @@ class DBContextManager:
         try:
             self.connector = connect(**self.db_config)
             self.cursor = self.connector.cursor()
+            if self.cursor is None:
+                raise OperationalError("Couldn't establish a database connection.")
             return self.cursor
         except OperationalError as e:
             logger.error(f"Error code: {e.args[0]}, Error description: {e.args[1]}")
+            return None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """

@@ -1,5 +1,2 @@
-from flask import Blueprint
-
-report_app = Blueprint('report', __name__, template_folder='templates')
-
-from . import routes
+from . import routes as routes
+from .blueprint import report_app as report_app

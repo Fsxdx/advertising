@@ -2,39 +2,39 @@
 
 {% block content %}
 
-  <!-- Report Display Section -->
-  <section class="container my-5">
-    <h2 class="text-center mb-4">Report Details</h2>
+<!-- Report Display Section -->
+<section class="container my-5">
+    <h2 class="text-center mb-4">{{report_type}} for {{month}}/{{year}}</h2>
 
     <!-- Check if there is report data -->
     {% if report_data %}
-      <div class="table-responsive">
+    <div class="table-responsive">
         <table class="table table-striped table-bordered">
-          <thead class="table-dark">
+            <thead class="table-dark">
             <tr>
-              <!-- Dynamically generate column headers -->
-              {% for column in column_names %}
+                <!-- Dynamically generate column headers -->
+                {% for column in column_names %}
                 <th>{{ column }}</th>
-              {% endfor %}
+                {% endfor %}
             </tr>
-          </thead>
-          <tbody>
+            </thead>
+            <tbody>
             <!-- Loop through report data to populate rows -->
             {% for row in report_data %}
-              <tr>
+            <tr>
                 {% for cell in row %}
-                  <td>{{ cell }}</td>
+                <td>{{ cell }}</td>
                 {% endfor %}
-              </tr>
+            </tr>
             {% endfor %}
-          </tbody>
+            </tbody>
         </table>
-      </div>
+    </div>
     {% else %}
-      <p class="text-center text-muted">No data available for this report.</p>
+    <p class="text-center text-muted">No data available for this report.</p>
     {% endif %}
-  </section>
+</section>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

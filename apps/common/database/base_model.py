@@ -1,61 +1,69 @@
 from contextlib import contextmanager
+from typing import Any, Generator, Optional, Union
+
 from pymysql import OperationalError, connect
-from pymysql.cursors import Cursor
-from .db_manager import DBContextManager
-from flask import current_app, session
 from pymysql.connections import Connection
-from typing import Generator, Optional
+from pymysql.cursors import Cursor
+
+from .db_manager import DBContextManager
 
 
 class BaseModel:
-    """Base model to provide utility methods for database interaction."""
+    """Base model providing utility methods for interacting with the database."""
 
     @classmethod
-    def execute_query(cls, query: str, db_config, cursor: Optional[Cursor] = None) -> Cursor:
-        """Executes a query on the database.
+    def execute_query(
+        cls, query: str, db_config: dict[str, Any], cursor: Optional[Cursor] = None
+    ) -> Cursor:
+        """Executes a SQL query.
 
         Args:
-            query (str): SQL query to be executed.
-            cursor (Optional[Cursor], optional): Existing database cursor to use. Defaults to None.
+            query (str): The SQL query to execute.
+            db_config (dict[str, Any]): Database configuration.
+            cursor (Optional[Cursor], optional): Reusable database cursor. Defaults to None.
 
         Returns:
-            Cursor: The cursor after the query is executed.
+            Cursor: The cursor after executing the query.
 
         Raises:
-            OperationalError: If the cursor could not be created.
+            OperationalError: If the query fails or the cursor cannot be created.
         """
         if cursor:
             cursor.execute(query)
             return cursor
-        else:
-            with DBContextManager(db_config) as cursor:
-                if cursor is None:
-                    raise OperationalError(
-                        "Cursor could not be created.")  # Lost info about error because was catched inside __enter__
-                cursor.execute(query)
-                return cursor
+        with DBContextManager(db_config) as context_cursor:
+            if context_cursor is None:
+                raise OperationalError("Failed to create a database cursor.")
+            context_cursor.execute(query)
+            return context_cursor
 
     @classmethod
-    def fetch_all(cls, query: str, db_config, cursor: Optional[Cursor] = None) -> tuple:
-        """Fetches all results from a query.
+    def fetch_all(
+        cls, query: str, db_config: dict[str, Any], cursor: Optional[Cursor] = None
+    ) -> tuple[tuple[str, ...], ...]:
+        """Fetches all results from a SQL query.
 
         Args:
             query (str): SQL query to fetch results.
-            cursor (Optional[Cursor], optional): Existing database cursor to use. Defaults to None.
+            db_config (dict[str, Any]): Database configuration.
+            cursor (Optional[Cursor], optional): Reusable database cursor. Defaults to None.
 
         Returns:
-            list: A list of rows fetched from the database.
+            tuple[tuple, ...]: A tuple of rows fetched from the database.
         """
         cursor = cls.execute_query(query, db_config, cursor)
         return cursor.fetchall()
 
     @classmethod
-    def fetch_one(cls, query: str, db_config, cursor: Optional[Cursor] = None) -> Optional[tuple]:
-        """Fetches one result from a query.
+    def fetch_one(
+        cls, query: str, db_config: dict[str, Any], cursor: Optional[Cursor] = None
+    ) -> Optional[tuple[str, ...]]:
+        """Fetches a single result from a SQL query.
 
         Args:
-            query (str): SQL query to fetch a result.
-            cursor (Optional[Cursor], optional): Existing database cursor to use. Defaults to None.
+            query (str): SQL query to fetch a single result.
+            db_config (dict[str, Any]): Database configuration.
+            cursor (Optional[Cursor], optional): Reusable database cursor. Defaults to None.
 
         Returns:
             Optional[tuple]: A single row fetched from the database, or None if no result.
@@ -64,12 +72,15 @@ class BaseModel:
         return cursor.fetchone()
 
     @classmethod
-    def insert(cls, query: str, db_config, cursor: Optional[Cursor] = None) -> int:
-        """Inserts a new record into the database.
+    def insert(
+        cls, query: str, db_config: dict[str, Any], cursor: Optional[Cursor] = None
+    ) -> int:
+        """Inserts a new record into the database and returns the last inserted ID.
 
         Args:
             query (str): SQL query to insert a new record.
-            cursor (Optional[Cursor], optional): Existing database cursor to use. Defaults to None.
+            db_config (dict[str, Any]): Database configuration.
+            cursor (Optional[Cursor], optional): Reusable database cursor. Defaults to None.
 
         Returns:
             int: The ID of the last inserted row.
@@ -78,50 +89,58 @@ class BaseModel:
         return cursor.lastrowid
 
     @classmethod
-    def call_procedure(cls, procedure_name: str, db_config, *params, cursor: Optional[Cursor] = None) -> tuple:
-        """Calls a stored procedure and fetches its output.
+    def call_procedure(
+        cls,
+        procedure_name: str,
+        db_config: dict[str, Any],
+        *params: Union[str, int, float],
+        cursor: Optional[Cursor] = None,
+    ) -> tuple[tuple[str, ...], ...]:
+        """Calls a stored procedure in the database.
 
         Args:
-            procedure_name (str): The name of the stored procedure to call.
-            *params: The parameters to pass to the stored procedure.
-            cursor (Optional[Cursor], optional): Existing database cursor to use. Defaults to None.
+            procedure_name (str): Name of the stored procedure.
+            db_config (dict[str, Any]): Database configuration.
+            *params (Union[str, int, float]): Parameters to pass to the procedure.
+            cursor (Optional[Cursor], optional): Reusable database cursor. Defaults to None.
 
         Returns:
-            tuple: The result set returned by the procedure.
+            tuple[tuple, ...]: Results fetched from the procedure.
 
         Raises:
-            OperationalError: If the cursor could not be created.
+            OperationalError: If the procedure execution fails or the cursor cannot be created.
         """
         if cursor:
             cursor.callproc(procedure_name, params)
             return cursor.fetchall()
-        else:
-            with DBContextManager(db_config) as cursor:
-                if cursor is None:
-                    raise OperationalError("Cursor could not be created.")
-                cursor.callproc(f"Advertising.{procedure_name}", params)
-                return cursor.fetchall()
+        with DBContextManager(db_config) as context_cursor:
+            if context_cursor is None:
+                raise OperationalError("Failed to create a database cursor.")
+            context_cursor.callproc(procedure_name, params)
+            return context_cursor.fetchall()
 
     @classmethod
     @contextmanager
-    def transaction(cls, db_config) -> Generator[Cursor, None, None]:
+    def transaction(cls, db_config: dict[str, Any]) -> Generator[Cursor, None, None]:
         """Manages a database transaction.
 
+        Args:
+            db_config (dict[str, Any]): Database configuration.
+
         Yields:
-            Generator[Cursor, None, None]: A database cursor within a transaction.
+            Generator[Cursor, None, None]: A cursor for executing queries within the transaction.
 
         Raises:
-            Exception: If an error occurs during the transaction, it will rollback the changes.
+            Exception: Rolls back the transaction in case of any error.
         """
-        db_manager = DBContextManager(db_config)
-        db_manager.connector: Connection = connect(**db_config)
-        cursor = db_manager.connector.cursor()
+        connection: Connection = connect(**db_config)
+        cursor: Cursor = connection.cursor()
         try:
             yield cursor
-            db_manager.connector.commit()
+            connection.commit()
         except Exception as e:
-            db_manager.connector.rollback()
+            connection.rollback()
             raise e
         finally:
             cursor.close()
-            db_manager.connector.close()
+            connection.close()

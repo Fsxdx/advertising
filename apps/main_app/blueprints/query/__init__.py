@@ -1,5 +1,2 @@
-from flask import Blueprint
-
-query_app = Blueprint('query', __name__, template_folder='templates')
-
-from . import routes
+from . import routes as routes
+from .blueprint import query_app as query_app

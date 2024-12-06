@@ -1,7 +1,7 @@
 import os
 from string import Template
-import logging
-from pathlib import Path
+from typing import Any, Dict
+
 
 class SQLProvider:
     """
@@ -19,11 +19,10 @@ class SQLProvider:
         # Load all .sql files from the provided directory
         for file in os.listdir(file_path):
             if file.endswith(".sql"):
-                with open(os.path.join(file_path, file), 'r') as sql_file:
+                with open(os.path.join(file_path, file), "r") as sql_file:
                     self.scripts[file] = Template(sql_file.read())
 
-
-    def get(self, file: str, **kwargs) -> str:
+    def get(self, file: str, **kwargs: Dict[str, Any]) -> str:
         """
         Retrieve and substitute variables in a SQL template.
 
