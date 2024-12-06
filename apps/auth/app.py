@@ -1,79 +1,68 @@
 from __future__ import annotations
-import json
-import os
-from flask import Flask, render_template, request, render_template_string, session
-from pymysql import ProgrammingError
-from flask import render_template, request, redirect, jsonify
-from apps.auth.models import User
-from typing import Union, TYPE_CHECKING
 
-from apps.auth.utils import is_auth_request_valid, decode_basic_authorization
+import json
+import logging
+from typing import TYPE_CHECKING, Any, Dict
+
+from flask import Flask, jsonify, request
+
+from apps.auth.models import AuthManager
 
 if TYPE_CHECKING:
     from werkzeug.wrappers import Response
-from apps.common.database.sql_provider import SQLProvider
-import logging
 
 app = Flask(__name__)
-
 app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
 
 # Load the database configuration from a JSON file
-with open('data/db_config.json', 'r') as db_config_file:
-    db_config = json.load(db_config_file)
-    app.config['db_config'] = db_config
-
-# Initialize the SQLProvider
-# sql_provider = SQLProvider(os.path.join(os.path.dirname(__file__), 'sql'))
+try:
+    with open("data/db_config.json", "r", encoding="utf-8") as db_config_file:
+        db_config: Dict[str, Any] = json.load(db_config_file)
+        app.config["db_config"] = db_config
+except FileNotFoundError as error:
+    logging.error("Database configuration file not found: %s", error)
+    raise RuntimeError("Database configuration file is missing") from error
+except json.JSONDecodeError as error:
+    logging.error("Error decoding database configuration file: %s", error)
+    raise ValueError("Invalid JSON in database configuration file") from error
 
 # Set up logging configuration
-logging.basicConfig(level=logging.ERROR,
-                    filename='log/app.log',
-                    filemode='w',
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(
+    level=logging.ERROR,
+    filename="log/app.log",
+    filemode="w",
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
-@app.route('/find_user', methods=['GET'])
+@app.route("/find_user", methods=["GET"])
 def find_user_handler() -> tuple[Response, int]:
-    if not is_auth_request_valid(request):
-        return jsonify({"status": 400, "message": "Bad Request"}), 200
-    email, password = decode_basic_authorization(request)
-    print(email, password)
+    """
+    Handle the `/find_user` endpoint to authenticate a user based on Basic Authentication.
 
-    try:
-        user = User.get_by_email(email)
-        if user and user.check_password(password):
-            return jsonify({"status": 200, "message": "OK", "user_id": user.user_id, "role": user.role}), 200
-        else:
-            return jsonify({"status": 404, "message": "Bad Credentials"}), 200
+    This endpoint validates the request using Basic Authentication headers.
+    If the credentials are valid, the user's details are returned.
 
-    except ProgrammingError as e:
-        print(e)
-        return jsonify({"status": 500, "message": "Try again later"}), 200
+    Returns:
+        tuple[Response, int]: JSON response with user data or error message, and HTTP status code.
+    """
+    return jsonify(AuthManager.get_user(request)), 200
 
 
-@app.route('/register_renter', methods=['POST'])
+@app.route("/register_renter", methods=["POST"])
 def register_handler() -> tuple[Response, int]:
-    data = request.json
-    if ('email' not in data or 'password' not in data or 'first_name' not in data or 'last_name' not in data
-            or 'phone_number' not in data or 'renter_address' not in data or 'business_sphere' not in data):
-        return jsonify({"status": 415, "message": "Bad Request"}), 200
+    """
+    Handle the `/register_renter` endpoint to register a new renter.
 
-    try:
-        if User.get_by_email(data['email']):
-            return jsonify({"status": 400, "message": "User with the same name already exists"}), 200
-        role = 'renter'
-        User.create_renter(role, data['email'], data['password'],
-                           first_name=data['first_name'],
-                           last_name=data['last_name'],
-                           phone_number=data['phone_number'],
-                           renter_address=data['renter_address'],
-                           business_sphere=data['business_sphere'])
-        return jsonify({"status": 200, "message": "OK"}), 200
-    except ProgrammingError:
-        return jsonify({"status": 500, "message": "Try again later"}), 200
+    This endpoint accepts user registration data as a JSON payload and
+    creates a new renter if the data is valid and the email is not already taken.
+
+    Returns:
+        tuple[Response, int]: JSON response with status and message, and HTTP status code.
+    """
+    return jsonify(AuthManager.register_user(request)), 200
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()

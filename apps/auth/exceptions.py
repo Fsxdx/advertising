@@ -1,5 +1,2 @@
-class InvalidCredentialsException(Exception):
-    pass
-
-class InvalidRegistrationDataException(Exception):
+class UserNotFoundError(Exception):
     pass

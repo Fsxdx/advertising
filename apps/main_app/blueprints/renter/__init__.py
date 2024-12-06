@@ -1,5 +1,2 @@
-from flask import Blueprint
-
-renter_app = Blueprint('renter', __name__, template_folder='templates', static_folder='static')
-
-from . import routes
+from . import routes as routes
+from .blueprint import renter_app as renter_app

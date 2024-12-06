@@ -100,12 +100,7 @@
 <!-- Передаем занятые периоды с сервера -->
 <script>
     // Получаем занятые периоды из сервера, преобразуем их в JSON
-    const occupiedPeriods = {
-    {
-        occupied_periods | tojson
-    }
-    }
-    ;
+    const occupiedPeriods = {{ occupied_periods | tojson }};
 
     // Конвертируем данные для более простого использования
     const occupiedRanges = occupiedPeriods.map(period => {
