@@ -38,18 +38,16 @@ def billboard_post_handler() -> str:
             - Rendered HTML with search results if the query is successful.
             - Rendered HTML with the form and an error message if validation or the query fails.
     """
-    # Extracting user input from the form
     user_input = {
-        "min_price": request.form.get("min_price", ""),
-        "max_price": request.form.get("max_price", ""),
-        "city": request.form.get("city", ""),
-        "min_quality": request.form.get("min_quality", ""),
-        "max_quality": request.form.get("max_quality", ""),
-        "min_size": request.form.get("min_size", ""),
-        "max_size": request.form.get("max_size", ""),
+        "min_price": request.form.get("min_price", "0"),
+        "max_price": request.form.get("max_price", "~0"),
+        "city": request.form.get("city", "%"),
+        "min_quality": request.form.get("min_quality", "0"),
+        "max_quality": request.form.get("max_quality", "~0"),
+        "min_size": request.form.get("min_size", "0"),
+        "max_size": request.form.get("max_size", "~0"),
     }
 
-    # Validating user input
     try:
         QueryHandler.check_input(user_input)
     except ValueError as e:
@@ -59,10 +57,8 @@ def billboard_post_handler() -> str:
             error=str(e),
         )
 
-    # Processing the user input
     result = QueryHandler.process_user_input(user_input)
 
-    # Handling the results
     if result.status:
         return render_template(
             "billboard_query_result.html",

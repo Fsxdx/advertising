@@ -123,6 +123,7 @@
             startView: "months",
             minViewMode: "months",
             autoclose: true,
+            startDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
             beforeShowMonth: function (date) {
                 if (isDateBlocked(date)) {
                     return {classes: 'blocked', tooltip: 'This period is occupied'};

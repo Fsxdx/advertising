@@ -7,6 +7,7 @@ from flask import current_app, session
 from pymysql import OperationalError
 
 from apps.common.database.base_model import BaseModel
+from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
 
 logger = logging.getLogger(__name__)
@@ -18,17 +19,18 @@ class ReportResponse:
     Represents the response from a report generation or retrieval operation.
 
     Attributes:
-        column_names (Optional[List[str]]): Names of the columns in the report.
-        result (Optional[Tuple[Tuple, ...]]): The fetched report data.
         error_message (str): Error message in case of failure.
         status (bool): Whether the operation was successful.
+        column_names (Optional[List[str]]): Names of the columns in the report.
+        report_desc (Optional[str]): description of the report.
+        result (Optional[Tuple[Tuple, ...]]): The fetched report data.
     """
 
     error_message: str
     status: bool
     column_names: Optional[List[str]] = field(default=None)
     report_desc: Optional[str] = field(default=None)
-    result: Optional[Tuple[Tuple, ...]] = field(default=None)
+    result: Optional[Tuple[Tuple[str, ...], ...]] = field(default=None)
 
 
 class ReportManager(BaseModel, metaclass=MetaSQL):
@@ -36,11 +38,15 @@ class ReportManager(BaseModel, metaclass=MetaSQL):
     Handles the creation and retrieval of reports.
 
     Attributes:
-        report_config (dict): Configuration for available report types.
+        report_config (dict): Configuration for available report scenarios.
+        sql_provider(SQLProvider): SQLProvider instance.
     """
-
-    with open("data/report_config.json", "r") as file:
-        report_config = json.load(file)
+    sql_provider: SQLProvider
+    try:
+        with open("data/report_config.json", "r") as file:
+            report_config = json.load(open("data/report_config.json", "r"))
+    except FileNotFoundError:
+        report_config = {}
 
     @classmethod
     def create_report(cls, report_type: str, month: int, year: int) -> str:

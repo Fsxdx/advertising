@@ -2,8 +2,9 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
 
-from flask import (Response, current_app, redirect, render_template_string,
-                   request, session, url_for)
+from flask import current_app, redirect, request, session, url_for
+from werkzeug.exceptions import Forbidden
+from werkzeug.wrappers import Response
 
 RetType = TypeVar("RetType")
 
@@ -21,7 +22,7 @@ def login_required(f: Callable[..., RetType]) -> Callable[..., RetType | Respons
     """
 
     @wraps(f)
-    def wrap(*args: tuple[str], **kwargs: dict[str, Any]) -> RetType:
+    def wrap(*args: tuple[str], **kwargs: dict[str, Any]) -> RetType | Response:
         # If 'role' is not in the session, the user is not logged in, so redirect to login page
         if "role" not in session:
             return redirect(url_for("auth.auth_login_get_handler"))
@@ -41,18 +42,21 @@ def role_required(func: Callable[..., RetType]) -> Callable[..., RetType | str]:
 
     Returns:
         Callable[..., RetType]: The wrapped function that checks the user's role before proceeding.
+
+    Raises:
+        Forbidden: If the user is not authorized to access page.
     """
 
     @wraps(func)
-    def wrap(*args: tuple[str], **kwargs: dict[str, Any]) -> RetType:
+    def wrap(*args: tuple[str], **kwargs: dict[str, Any]) -> RetType | str:
         role = session.get("role")
         endpoint = request.endpoint
+        if endpoint is None:
+            raise ValueError("Endpoint is not set")
 
-        if role and endpoint.split(".")[-1] in current_app.config["permissions"].get(
-            role, []
-        ):
+        if role and endpoint.split(".")[-1] in current_app.config["permissions"].get(role, []):
             return func(*args, **kwargs)
 
-        return render_template_string("You do not have rights to access this page")
+        raise Forbidden("You don't have rights to access that page.")
 
     return wrap

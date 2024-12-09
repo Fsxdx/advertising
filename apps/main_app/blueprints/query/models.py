@@ -6,19 +6,19 @@ from flask import current_app, session
 from pymysql import OperationalError
 
 from apps.common.database.base_model import BaseModel
+from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
 
-# Настройка логгера
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class InfoResponse:
     """
-    Data class for holding the response of information requests.
+    Data class for holding the response of query requests.
 
     Attributes:
-        result (Tuple[Any, ...]): The fetched product data as a tuple of rows.
+        result (Tuple[Any, ...]): The fetched data as a tuple of rows.
         error_message (str): Error message, if any.
         status (bool): Indicates whether the request was successful or not.
     """
@@ -29,12 +29,8 @@ class InfoResponse:
 
 
 class QueryHandler(BaseModel, metaclass=MetaSQL):
-    """
-    Handles database queries and processes user input for fetching information.
-
-    This class inherits from `BaseModel` and uses a SQL metaclass to
-    dynamically generate database query behavior.
-    """
+    """Handles database queries and processes user input for fetching information."""
+    sql_provider: SQLProvider
 
     @classmethod
     def check_input(cls, input_data: Dict[str, str]) -> bool:
@@ -43,7 +39,6 @@ class QueryHandler(BaseModel, metaclass=MetaSQL):
 
         Args:
             input_data (Dict[str, str]): Dictionary containing input data
-            with keys like "city", "min_price", "max_price", etc.
 
         Returns:
             bool: True if the input data is valid.
@@ -52,7 +47,7 @@ class QueryHandler(BaseModel, metaclass=MetaSQL):
             ValueError: If a non-numeric value is found in a numeric field.
         """
         for key, value in input_data.items():
-            if key != "city" and not value.isdigit():
+            if key != "city" and not value.isdigit() and value != "~0":
                 raise ValueError(
                     f"Non-numeric value found in field {key}: '{value.capitalize()}'"
                 )
@@ -64,8 +59,7 @@ class QueryHandler(BaseModel, metaclass=MetaSQL):
         Processes user input to generate and execute an SQL query.
 
         Args:
-            input_data (Dict[str, str]): Dictionary containing input parameters
-            for filtering results (e.g., min_price, max_price, city).
+            input_data (Dict[str, str]): Dictionary containing input parameters for filtering results
 
         Returns:
             InfoResponse: Contains the query result, error message, and status.
