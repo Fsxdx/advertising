@@ -1,6 +1,7 @@
 import json
 import logging
 from functools import reduce
+from os import environ
 from typing import Dict, Set
 
 from flask import Flask, render_template, request, session
@@ -23,13 +24,23 @@ app.register_blueprint(report_app, url_prefix="/report")
 app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
 
 # Load configuration from JSON files
-with open("data/db_config.json", "r") as db_config_file:
-    app.config["db_config"] = json.load(db_config_file)
+try:
+    with open("apps/main_app/data/db_config.json", "r") as db_config_file:
+        app.config["db_config"] = json.load(db_config_file)
 
-with open("data/permissions.json", "r") as permissions_file:
-    app.config["permissions"] = {
-        key: set(value) for key, value in json.load(permissions_file).items()
-    }
+    for key, value in app.config['db_config'].items():
+        value['host'] = environ['DB_HOST']
+
+    with open("apps/main_app/data/permissions.json", "r") as permissions_file:
+        app.config["permissions"] = {
+            key: set(value) for key, value in json.load(permissions_file).items()
+        }
+except FileNotFoundError as error:
+    logging.error("Database configuration file not found: %s", error)
+    raise RuntimeError("Database configuration file is missing") from error
+except json.JSONDecodeError as error:
+    logging.error("Error decoding database configuration file: %s", error)
+    raise ValueError("Invalid JSON in database configuration file") from error
 
 # Apply role-based wrappers to endpoints
 role_req_endpoints = reduce(lambda x, y: x | y, app.config["permissions"].values())
@@ -40,14 +51,14 @@ for endpoint, func in app.view_functions.items():
 # Set up logging configuration
 logging.basicConfig(
     level=logging.ERROR,
-    filename="log/app.log",
+    filename="apps/main_app/log/app.log",
     filemode="w",
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 # Load role definitions from a JSON file
-with open("data/roles.json", "r") as roles_file:
+with open("apps/main_app/data/roles.json", "r") as roles_file:
     roles: Dict[str, Set[str]] = json.load(roles_file)
 
 

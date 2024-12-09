@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from os import environ
 from typing import TYPE_CHECKING, Any, Dict
 
 from flask import Flask, jsonify, request
@@ -10,15 +11,14 @@ from apps.auth.models import AuthManager
 
 if TYPE_CHECKING:
     from werkzeug.wrappers import Response
-
 app = Flask(__name__)
 app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
 
 # Load the database configuration from a JSON file
 try:
-    with open("data/db_config.json", "r", encoding="utf-8") as db_config_file:
-        db_config: Dict[str, Any] = json.load(db_config_file)
-        app.config["db_config"] = db_config
+    with open("apps/auth/data/db_config.json", "r", encoding="utf-8") as db_config_file:
+        app.config["db_config"] = json.load(db_config_file)
+    app.config['db_config']['host'] = environ['DB_HOST']
 except FileNotFoundError as error:
     logging.error("Database configuration file not found: %s", error)
     raise RuntimeError("Database configuration file is missing") from error
@@ -29,7 +29,7 @@ except json.JSONDecodeError as error:
 # Set up logging configuration
 logging.basicConfig(
     level=logging.ERROR,
-    filename="log/app.log",
+    filename="apps/auth/log/app.log",
     filemode="w",
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
