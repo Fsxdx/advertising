@@ -5,7 +5,7 @@ from .models import ReportManager
 
 
 @report_app.route("/create", methods=["GET"])
-def create_get_handler():
+def create_get_handler() -> str:
     """
     Handles the GET request for the 'Create Report' page.
 
@@ -21,7 +21,7 @@ def create_get_handler():
 
 
 @report_app.route("/create", methods=["POST"])
-def create_post_handler():
+def create_post_handler() -> str:
     """
     Handles the POST request for creating a new report.
 
@@ -73,7 +73,7 @@ def create_post_handler():
 
 
 @report_app.route("/view", methods=["GET"])
-def view_get_handler():
+def view_get_handler() -> str:
     """
     Handles the GET request for the 'View Report' page.
 
@@ -89,7 +89,7 @@ def view_get_handler():
 
 
 @report_app.route("/view", methods=["POST"])
-def view_post_handler():
+def view_post_handler() -> str:
     """
     Handles the POST request for viewing a report.
 

@@ -1,5 +1,6 @@
 import logging
-from typing import Any
+from types import TracebackType
+from typing import Any, Optional, Type
 
 import pymysql
 from pymysql import connect
@@ -28,41 +29,41 @@ class DBContextManager:
         Establishes a database connection and returns a cursor for executing queries.
 
         The method attempts to establish a connection to the database using the provided configuration.
-        If successful, it returns a database cursor. If an error occurs during the connection process,
-        it logs the error message with the error code and description but does not propagate the error.
 
-        Returns
-        -------
-        pymysql.cursors.Cursor or None
-            The cursor object for executing SQL queries if the connection is successful.
-            Returns None if the connection fails.
-
+        Returns:
+            pymysql.cursors.Cursor or None
         """
         try:
-            self.connector = connect(**self.db_config)
+            self.connector = connect(
+                host=self.db_config['host'],
+                user=self.db_config['user'],
+                password=self.db_config['password'],
+                database=self.db_config['database']
+            )
+            # if self.connector is None:
+            #     raise OperationalError("Couldn't establish a database connection.")
             self.cursor = self.connector.cursor()
-            if self.cursor is None:
-                raise OperationalError("Couldn't establish a database connection.")
             return self.cursor
         except OperationalError as e:
             logger.error(f"Error code: {e.args[0]}, Error description: {e.args[1]}")
             return None
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Optional[Type[BaseException]], exc: Optional[BaseException],
+                 traceback: Optional[TracebackType]) -> Optional[bool]:
         """
         Exit method to close the cursor and connection and handle exceptions.
 
         If an exception occurred, the transaction is rolled back; otherwise, it's committed.
         """
-        if self.cursor:
+        if self.cursor and self.connector:
             if exc_type:
-                self.connector.rollback()  # Roll back the transaction on error
+                self.connector.rollback()
             else:
-                self.connector.commit()  # Commit the transaction on success
+                self.connector.commit()
             self.cursor.close()
             self.connector.close()
 
         if exc_type:
-            raise OperationalError(exc_type, exc_val, exc_tb)
+            raise OperationalError(exc_type, exc, traceback)
 
         return True

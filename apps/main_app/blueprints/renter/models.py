@@ -1,11 +1,19 @@
 from datetime import datetime
 from os import path
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 from flask import current_app, session
 
 from apps.common.database.base_model import BaseModel
+from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
+
+
+def is_period_overlaps(occupied_periods, start_date, end_date):
+    return any(
+        period["start"] <= end_date and start_date <= period["end"]
+        for period in occupied_periods
+    )
 
 
 class Renter(BaseModel, metaclass=MetaSQL):
@@ -19,20 +27,21 @@ class Renter(BaseModel, metaclass=MetaSQL):
         phone_number (str): Contact number of the renter.
         address (str): Address of the renter.
         business_sphere (str): Business sphere of the renter.
-        user_id (int): Associated user ID.
+        user_id (int): Associated unique user ID.
         img (Optional[str]): Path to the renter's image.
     """
+    sql_provider: SQLProvider
 
     def __init__(
-        self,
-        renter_id: int,
-        first_name: str,
-        last_name: str,
-        phone_number: str,
-        address: str,
-        business_sphere: str,
-        user_id: int,
-        img: Optional[str] = None,
+            self,
+            renter_id: int,
+            first_name: str,
+            last_name: str,
+            phone_number: str,
+            address: str,
+            business_sphere: str,
+            user_id: int,
+            img: Optional[str] = None,
     ) -> None:
         self.renter_id = renter_id
         self.first_name = first_name
@@ -44,7 +53,7 @@ class Renter(BaseModel, metaclass=MetaSQL):
         self.img = img
 
     @classmethod
-    def get_by_user_id(cls, user_id: int) -> Type["Renter"]:
+    def get_by_user_id(cls, user_id: int) -> "Renter":
         """
         Fetches a renter by the user ID.
 
@@ -52,7 +61,7 @@ class Renter(BaseModel, metaclass=MetaSQL):
             user_id (int): The ID of the user.
 
         Returns:
-            Optional[Renter]: A Renter instance if found, None otherwise.
+            Renter: A Renter instance.
 
         Raises:
             ValueError: If the renter does not exist.
@@ -63,7 +72,7 @@ class Renter(BaseModel, metaclass=MetaSQL):
         )
         if not result:
             raise ValueError("Renter with such ID does not exist.")
-        return Renter(*result)
+        return Renter(*result)  # type: ignore
 
 
 class Billboard(BaseModel, metaclass=MetaSQL):
@@ -76,20 +85,22 @@ class Billboard(BaseModel, metaclass=MetaSQL):
         size (float): Size of the billboard in square meters.
         billboard_address (str): Physical address of the billboard.
         mount_date (Optional[datetime]): Date the billboard was mounted.
-        quality (int): Quality rating of the billboard.
+        quality (int): Quality of the billboard.
         owner_id (int): ID of the owner of the billboard.
         img_path (Optional[str]): Path to the billboard's image.
     """
 
+    sql_provider: SQLProvider
+
     def __init__(
-        self,
-        billboard_id: int,
-        price_per_month: float,
-        size: float,
-        billboard_address: str,
-        mount_date: Optional[datetime],
-        quality: int,
-        owner_id: int,
+            self,
+            billboard_id: int,
+            price_per_month: float,
+            size: float,
+            billboard_address: str,
+            mount_date: Optional[datetime],
+            quality: int,
+            owner_id: int,
     ) -> None:
         self.billboard_id = billboard_id
         self.price_per_month = price_per_month
@@ -115,7 +126,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
             billboard_id (int): The ID of the billboard.
 
         Returns:
-            Billboard: A Billboard instance if found.
+            Billboard: A Billboard instance.
 
         Raises:
             ValueError: If the billboard does not exist.
@@ -126,7 +137,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
         )
         if not result:
             raise ValueError("Billboard with such ID does not exist.")
-        return Billboard(*result)
+        return Billboard(*result)  # type: ignore
 
     @classmethod
     def get_random_billboards(cls, count: int) -> List["Billboard"]:
@@ -143,7 +154,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
             cls.sql_provider.get("get_n_random_billboards.sql", n=count),
             db_config=current_app.config["db_config"][session["role"]],
         )
-        return [Billboard(*x) for x in result]
+        return [Billboard(*x) for x in result]  # type: ignore
 
     def get_occupied_periods(self) -> List[Dict[str, datetime]]:
         """
@@ -181,11 +192,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
         Returns:
             bool: True if the period overlaps, False otherwise.
         """
-        occupied_periods = self.get_occupied_periods()
-        return any(
-            period["start"] <= end_date and start_date <= period["end"]
-            for period in occupied_periods
-        )
+        return is_period_overlaps(self.get_occupied_periods(), start_date, end_date)
 
 
 class OrderHandler(BaseModel, metaclass=MetaSQL):
@@ -239,18 +246,37 @@ class OrderHandler(BaseModel, metaclass=MetaSQL):
         if end_date_obj < start_date_obj:
             raise ValueError("End date must be equal to or later than start date.")
 
+        if start_date_obj < datetime.now():
+            raise ValueError("Start date must be at least equal to current.")
+
         if billboard.is_period_overlaps(start_date_obj, end_date_obj):
             raise ValueError("Selected period conflicts with existing booking.")
+
+        order_rows_with_same_billboard = [
+            {
+                "start": datetime(month=order_row['start_month'], year=order_row['start_year'], day=1),
+                "end": datetime(month=order_row['end_month'], year=order_row['end_year'], day=1),
+            }
+            for order_row in list(
+                filter(lambda order_row: order_row["billboard_id"] == billboard.billboard_id,
+                       session.get('cart', [])))
+        ]
+        if is_period_overlaps(order_rows_with_same_billboard,
+                              start_date_obj,
+                              end_date_obj
+                              ):
+            raise ValueError("Selected period conflicts with existing period in cart.")
+
         return True
 
     @classmethod
     def save_order_row_in_cart(
-        cls,
-        billboard_id: int,
-        start_month: int,
-        start_year: int,
-        end_month: int,
-        end_year: int,
+            cls,
+            billboard_id: int,
+            start_month: int,
+            start_year: int,
+            end_month: int,
+            end_year: int,
     ) -> None:
         """
         Saves order details into the cart session.
@@ -271,12 +297,40 @@ class OrderHandler(BaseModel, metaclass=MetaSQL):
                 "end_year": end_year,
             }
         )
+        session['cart'] = session['cart']
+
+    @classmethod
+    def get_cart(cls) -> List[Dict[str, float]]:
+        """
+        Returns dict of parameters about items saved in the cart.
+
+        Returns:
+            List[Dict[str, float]]: List of parameters.
+        """
+        return [
+            {
+                **order,
+                "price_per_month": Billboard.get_billboard(order["billboard_id"]).price_per_month,
+            }
+            for order in session.get("cart", [])
+        ]
+
+    @classmethod
+    def get_total_cost(cls, items: List[Dict[str, float]]) -> float:
+        return sum(
+            (
+                    ((item["end_year"] - item["start_year"]) * 12 + (item["end_month"] - item["start_month"] + 1))
+                    * item["price_per_month"]
+            )
+            for item in items
+        )
 
 
 class CheckoutHandler(BaseModel, metaclass=MetaSQL):
     """
     Handles the checkout process for billboard orders.
     """
+    sql_provider: SQLProvider
 
     @classmethod
     def checkout(cls, order_rows: List[Dict[str, Any]]) -> None:
@@ -288,11 +342,11 @@ class CheckoutHandler(BaseModel, metaclass=MetaSQL):
         """
 
         def calculate_price(
-            price_per_month: float,
-            start_month: int,
-            start_year: int,
-            end_month: int,
-            end_year: int,
+                price_per_month: float,
+                start_month: int,
+                start_year: int,
+                end_month: int,
+                end_year: int,
         ) -> float:
             """
             Calculates the total price for the selected rental period.
@@ -326,7 +380,7 @@ class CheckoutHandler(BaseModel, metaclass=MetaSQL):
 
         # Begin transaction for order processing
         with cls.transaction(
-            current_app.config["db_config"][session["role"]]
+                current_app.config["db_config"][session["role"]]
         ) as cursor:
             renter = Renter.get_by_user_id(session["user_id"])
             order_id = cls.insert(

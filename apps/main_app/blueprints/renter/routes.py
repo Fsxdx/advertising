@@ -1,5 +1,6 @@
 from flask import redirect, render_template, request, session, url_for
 from pymysql import ProgrammingError
+from werkzeug import Response
 
 from .blueprint import renter_app
 from .models import Billboard, CheckoutHandler, OrderHandler
@@ -59,7 +60,6 @@ def add_billboard_to_cart(billboard_id: int) -> str:
             is_auth="user_id" in session,
         )
 
-    # Extract and parse the start and end dates
     start_year, start_month = map(int, start_date.split("/"))
     end_year, end_month = map(int, end_date.split("/"))
 
@@ -79,21 +79,8 @@ def cart_handler() -> str:
     Returns:
         str: Rendered HTML for the cart page with item details and total cost.
     """
-    items = [
-        {
-            **order,
-            "price_per_month": Billboard.get_billboard(order["billboard_id"]).price_per_month,
-        }
-        for order in session.get("cart", [])
-    ]
-
-    total_cost = sum(
-        (
-                ((item["end_year"] - item["start_year"]) * 12 + (item["end_month"] - item["start_month"] + 1))
-                * item["price_per_month"]
-        )
-        for item in items
-    )
+    items = OrderHandler.get_cart()
+    total_cost = OrderHandler.get_total_cost(items)
 
     return render_template(
         "cart.html",
@@ -116,20 +103,8 @@ def checkout_handler() -> str:
         CheckoutHandler.checkout(session.get("cart", []))
         return render_template("success_order.html")
     except ValueError as e:
-        items = [
-            {
-                **order,
-                "price_per_month": Billboard.get_billboard(order["billboard_id"]).price_per_month,
-            }
-            for order in session.get("cart", [])
-        ]
-        total_cost = sum(
-            (
-                    ((item["end_year"] - item["start_year"]) * 12 + (item["end_month"] - item["start_month"] + 1))
-                    * item["price_per_month"]
-            )
-            for item in items
-        )
+        items = OrderHandler.get_cart()
+        total_cost = OrderHandler.get_total_cost(items)
         return render_template(
             "cart.html",
             cart_items=items,
@@ -141,7 +116,7 @@ def checkout_handler() -> str:
 
 
 @renter_app.route("/remove-from-cart", methods=["POST"])
-def remove_billboard_from_cart() -> str:
+def remove_billboard_from_cart() -> str | Response:
     """
     Handle POST requests to remove an item from the cart.
 

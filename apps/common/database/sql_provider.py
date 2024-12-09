@@ -1,6 +1,6 @@
 import os
 from string import Template
-from typing import Any, Dict
+from typing import Any
 
 
 class SQLProvider:
@@ -16,13 +16,12 @@ class SQLProvider:
     def __init__(self, file_path: str):
         self.scripts = {}
 
-        # Load all .sql files from the provided directory
         for file in os.listdir(file_path):
             if file.endswith(".sql"):
                 with open(os.path.join(file_path, file), "r") as sql_file:
                     self.scripts[file] = Template(sql_file.read())
 
-    def get(self, file: str, **kwargs: Dict[str, Any]) -> str:
+    def get(self, file: str, **kwargs: Any) -> str:
         """
         Retrieve and substitute variables in a SQL template.
 

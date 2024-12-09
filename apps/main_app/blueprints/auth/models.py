@@ -10,8 +10,7 @@ auth_url = "http://127.0.0.1:5001"
 
 
 def process_api_response(
-        method: str, url: str, **kwargs: dict[str, Any]
-) -> Tuple[Optional[dict[str, str]], Optional[str]]:
+        method: str, url: str, **kwargs: Any) -> Tuple[Optional[dict[str, str]], Optional[str]]:
     """
     Helper function to process API responses.
 
@@ -55,24 +54,20 @@ def authenticate_user(email: str, password: str) -> bool:
     Raises:
         ValueError: If the API response indicates an error.
     """
-    # Constructing the Authorization header with Base64 encoding.
     auth_header = (
             "Basic "
             + b64encode(f"{email}:{password}".encode()).decode()
     )
 
-    # Sending a request to the authentication API.
     result, error = process_api_response(
         method="get",
         url=f"{auth_url}/find_user",
         headers={"Authorization": auth_header},
     )
 
-    # Handling the API response.
     if not result:
         raise ValueError(error)
 
-    # Storing user data in the session manager.
     SessionManager.add_user_data(result["user_id"], result["role"])
 
     return True
@@ -117,7 +112,6 @@ class SessionManager:
         Clears all session data.
 
         This method is a complete reset of the session and removes all keys.
-        Useful for a full logout or session invalidation process.
         """
         session.clear()
 
