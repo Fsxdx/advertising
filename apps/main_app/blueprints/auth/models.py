@@ -1,11 +1,10 @@
 import json
 from base64 import b64encode
+from os import environ
 from typing import Any, Optional, Tuple
 
 import requests
 from flask import session
-
-auth_url = "http://127.0.0.1:5001"
 
 
 
@@ -61,7 +60,7 @@ def authenticate_user(email: str, password: str) -> bool:
 
     result, error = process_api_response(
         method="get",
-        url=f"{auth_url}/find_user",
+        url=f"{environ['AUTH_URL']}/find_user",
         headers={"Authorization": auth_header},
     )
 

@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Union
 from flask import redirect, render_template, request
 from werkzeug.security import generate_password_hash
 from werkzeug.wrappers import Response
+from os import environ
 
 from .blueprint import auth_app
-from .models import (SessionManager, auth_url, authenticate_user,
+from .models import (SessionManager, authenticate_user,
                      process_api_response)
 
 if TYPE_CHECKING:
@@ -76,7 +77,7 @@ def auth_register_post_handler() -> str:
     }
 
     result, error = process_api_response(
-        method="post", url=f"{auth_url}/register_renter", json=data
+        method="post", url=f"{environ['AUTH_URL']}/register_renter", json=data
     )
 
     if error:
