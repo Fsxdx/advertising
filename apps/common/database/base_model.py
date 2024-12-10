@@ -150,3 +150,4 @@ class BaseModel:
         finally:
             cursor.close()
             connection.close()
+

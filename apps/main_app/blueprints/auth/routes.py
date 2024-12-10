@@ -1,15 +1,14 @@
 from __future__ import annotations
 
+from os import environ
 from typing import TYPE_CHECKING, Union
 
 from flask import redirect, render_template, request
 from werkzeug.security import generate_password_hash
 from werkzeug.wrappers import Response
-from os import environ
 
 from .blueprint import auth_app
-from .models import (SessionManager, authenticate_user,
-                     process_api_response)
+from .models import SessionManager, authenticate_user, process_api_response
 
 if TYPE_CHECKING:
     from werkzeug.wrappers import Response

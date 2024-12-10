@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from os import path
 from typing import Any, Dict, List, Optional
@@ -9,7 +11,18 @@ from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
 
 
-def is_period_overlaps(occupied_periods, start_date, end_date):
+def is_period_overlaps(occupied_periods: List[Dict[str, datetime]], start_date: datetime, end_date: datetime) -> bool:
+    """
+    Checks whether given period overlaps with any of existing periods
+
+    Arguments:
+        occupied_periods (List[Dict[str, datetime]]): List of occupied periods.
+        start_date (datetime): Start of chosen period to check for overlaps.
+        end_date (datetime): End of chosen period to check for overlaps.
+
+    Returns:
+        bool: True if period overlaps with any period from given list, False otherwise.
+    """
     return any(
         period["start"] <= end_date and start_date <= period["end"]
         for period in occupied_periods
@@ -53,7 +66,7 @@ class Renter(BaseModel, metaclass=MetaSQL):
         self.img = img
 
     @classmethod
-    def get_by_user_id(cls, user_id: int) -> "Renter":
+    def get_by_user_id(cls, user_id: int) -> Renter:
         """
         Fetches a renter by the user ID.
 
@@ -118,7 +131,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
         )
 
     @classmethod
-    def get_billboard(cls, billboard_id: int) -> "Billboard":
+    def get_billboard(cls, billboard_id: int) -> Billboard:
         """
         Fetches a billboard by ID.
 
@@ -140,7 +153,7 @@ class Billboard(BaseModel, metaclass=MetaSQL):
         return Billboard(*result)  # type: ignore
 
     @classmethod
-    def get_random_billboards(cls, count: int) -> List["Billboard"]:
+    def get_random_billboards(cls, count: int) -> List[Billboard]:
         """
         Fetches a random set of billboards.
 
