@@ -7,7 +7,6 @@ import requests
 from flask import session
 
 
-
 def process_api_response(
         method: str, url: str, **kwargs: Any) -> Tuple[Optional[dict[str, str]], Optional[str]]:
     """

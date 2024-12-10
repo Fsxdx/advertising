@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Optional, Union
 
@@ -31,7 +33,7 @@ class User(BaseModel, metaclass=MetaSQL):
         self.password = password
 
     @classmethod
-    def get_by_id(cls, user_id: int) -> Optional["User"]:
+    def get_by_id(cls, user_id: int) -> Optional[User]:
         """
         Fetches a user by their unique user_id.
 
@@ -53,7 +55,7 @@ class User(BaseModel, metaclass=MetaSQL):
         raise UserNotFoundError("Could not find user by user_id.")
 
     @classmethod
-    def get_by_email(cls, email: str) -> Optional["User"]:
+    def get_by_email(cls, email: str) -> Optional[User]:
         """
         Fetches a user by their email address.
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from os import environ
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING
 
 from flask import Flask, jsonify, request
 
