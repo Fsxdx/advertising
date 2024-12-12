@@ -206,7 +206,7 @@ class AuthManager(BaseModel, metaclass=MetaSQL):
                     "user_id": user.user_id,
                     "role": user.role,
                 }
-            return {"status": 401, "message": "Unauthorized"}
+            return {"status": 401, "message": "Invalid email or password"}
         except ValueError as error:
             logging.error("Error while decoding: %s", error)
             return {"status": 400, "message": "Invalid token value"}
