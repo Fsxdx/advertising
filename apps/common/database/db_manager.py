@@ -63,7 +63,7 @@ class DBContextManager:
             self.cursor.close()
             self.connector.close()
 
-        if exc_type:
-            raise OperationalError(exc_type, exc, traceback)
+        # if exc_type:
+        #     raise OperationalError(exc_type, exc, traceback)
 
         return True
