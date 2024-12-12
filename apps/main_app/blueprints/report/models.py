@@ -43,8 +43,8 @@ class ReportManager(BaseModel, metaclass=MetaSQL):
     """
     sql_provider: SQLProvider
     try:
-        with open("data/report_config.json", "r") as file:
-            report_config = json.load(open("data/report_config.json", "r"))
+        with open("apps/main_app/data/report_config.json", "r") as file:
+            report_config = json.load(file)
     except FileNotFoundError:
         report_config = {}
 
