@@ -47,7 +47,7 @@ class QueryHandler(BaseModel, metaclass=MetaSQL):
             ValueError: If a non-numeric value is found in a numeric field.
         """
         for key, value in input_data.items():
-            if key != "city" and not value.isdigit() and value != "~0":
+            if key != "city" and not value.isdigit() and value != "":
                 raise ValueError(
                     f"Non-numeric value found in field {key}: '{value.capitalize()}'"
                 )
