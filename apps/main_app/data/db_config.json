@@ -1,0 +1,22 @@
+{
+  "manager": {
+    "user": "manager",
+    "password": "123",
+    "database": "advertising"
+  },
+  "director": {
+    "user": "director",
+    "password": "1234",
+    "database": "advertising"
+  },
+  "support": {
+    "user": "support",
+    "password": "12",
+    "database": "advertising"
+  },
+  "renter": {
+    "user": "renter",
+    "password": "1",
+    "database": "advertising"
+  }
+}

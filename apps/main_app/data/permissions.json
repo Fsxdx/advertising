@@ -1,0 +1,24 @@
+{
+  "manager": [
+    "create_get_handler",
+    "create_post_handler",
+    "view_get_handler",
+    "view_post_handler"
+  ],
+  "renter": [
+    "get_billboard_details",
+    "add_billboard_to_cart",
+    "cart_handler",
+    "checkout_handler",
+    "remove_billboard_from_cart"
+  ],
+  "support": [
+    "handle_index_query",
+    "billboard_get_handler",
+    "billboard_post_handler"
+  ],
+  "director": [
+    "view_get_handler",
+    "view_post_handler"
+  ]
+}

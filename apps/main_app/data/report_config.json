@@ -1,0 +1,9 @@
+{
+  "renter": {
+    "desc": "Revenue by renter business sphere",
+    "procedure_name": "renter_fin_report",
+    "table": "reports",
+    "displayable_column_names": ["Report id", "Business sphere", "Revenue($)", "Count of orders"],
+    "db_columns": ["report_id", "business_sphere", "revenue", "count"]
+  }
+}

@@ -71,8 +71,6 @@ def handle_index() -> str:
     Returns:
         str: Rendered HTML content for the index page.
     """
-    print(request.endpoint)
-
     if "role" in session and session["role"] in roles["inner"]:
         return render_template("inner_index.html", role=session["role"])
 
