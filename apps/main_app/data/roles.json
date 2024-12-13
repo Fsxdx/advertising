@@ -1,0 +1,4 @@
+{
+  "inner": ["manager", "director", "support"],
+  "outer": ["renter"]
+}
