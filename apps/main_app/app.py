@@ -4,15 +4,14 @@ from functools import reduce
 from os import environ
 from typing import Dict, Set
 
-from flask import Flask, render_template, request, session
-from werkzeug.exceptions import Forbidden
-
 from apps.common.wrappers import login_required, role_required
 from apps.main_app.blueprints.auth import auth_app
 from apps.main_app.blueprints.query import query_app
 from apps.main_app.blueprints.renter import renter_app
 from apps.main_app.blueprints.renter.models import Billboard
 from apps.main_app.blueprints.report import report_app
+from flask import Flask, render_template, session
+from werkzeug.exceptions import Forbidden
 
 app = Flask(__name__)
 

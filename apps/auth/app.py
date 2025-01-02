@@ -5,9 +5,8 @@ import logging
 from os import environ
 from typing import TYPE_CHECKING
 
-from flask import Flask, jsonify, request
-
 from apps.auth.models import AuthManager
+from flask import Flask, jsonify, request
 
 if TYPE_CHECKING:
     from werkzeug.wrappers import Response

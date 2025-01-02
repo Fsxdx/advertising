@@ -3,12 +3,11 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
-from flask import current_app, session
-from pymysql import OperationalError
-
 from apps.common.database.base_model import BaseModel
 from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
+from flask import current_app, session
+from pymysql import OperationalError
 
 logger = logging.getLogger(__name__)
 

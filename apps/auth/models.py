@@ -4,14 +4,13 @@ import logging
 from base64 import b64decode
 from typing import Optional, Union
 
-from flask import Request, current_app
-from pymysql import ProgrammingError
-from werkzeug.security import check_password_hash
-
 from apps.auth.exceptions import UserNotFoundError
 from apps.common.database.base_model import BaseModel
 from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
+from flask import Request, current_app
+from pymysql import ProgrammingError
+from werkzeug.security import check_password_hash
 
 
 def is_auth_request_valid(api_request: Request) -> bool:

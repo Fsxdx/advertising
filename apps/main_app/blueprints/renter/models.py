@@ -4,11 +4,10 @@ from datetime import datetime
 from os import path
 from typing import Any, Dict, List, Optional
 
-from flask import current_app, session
-
 from apps.common.database.base_model import BaseModel
 from apps.common.database.sql_provider import SQLProvider
 from apps.common.meta import MetaSQL
+from flask import current_app, session
 
 
 def is_period_overlaps(occupied_periods: List[Dict[str, datetime]], start_date: datetime, end_date: datetime) -> bool:
