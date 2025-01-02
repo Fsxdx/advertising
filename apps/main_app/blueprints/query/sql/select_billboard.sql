@@ -6,4 +6,4 @@ where (price_per_month > "$min_price" or "$min_price" = '')
   and (quality > "$min_quality" or "$min_quality" = '')
   and (quality < "$max_quality" or "$max_quality" = '')
   and (size > "$min_size" or "$min_size" = '')
-  and (size < "$max_size" or "$max_size" = '')
+  and (size < "$max_size" or "$max_size" = '');

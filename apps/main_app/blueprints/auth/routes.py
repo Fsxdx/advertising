@@ -10,9 +10,6 @@ from werkzeug.wrappers import Response
 from .blueprint import auth_app
 from .models import SessionManager, authenticate_user, process_api_response
 
-if TYPE_CHECKING:
-    from werkzeug.wrappers import Response
-
 
 @auth_app.route("/", methods=["GET"])
 def auth_login_get_handler() -> str:
@@ -79,8 +76,9 @@ def auth_register_post_handler() -> str:
         method="post", url=f"{environ['AUTH_URL']}/register_renter", json=data
     )
 
-    if error:
+    if not result:
         return render_template("registration.html", error=error)
+
     return render_template("successful_registration.html")
 
 

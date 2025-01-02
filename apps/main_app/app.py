@@ -20,7 +20,7 @@ app.register_blueprint(renter_app, url_prefix="/rent")
 app.register_blueprint(query_app, url_prefix="/query")
 app.register_blueprint(report_app, url_prefix="/report")
 
-app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
+app.secret_key = environ['SECRET_KEY']
 
 # Load configuration from JSON files
 try:

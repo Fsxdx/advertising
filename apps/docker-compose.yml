@@ -5,7 +5,7 @@ services:
     build:
       context: ./common
       dockerfile: Dockerfile
-    image: advertising_app_base_image
+    image: advertising_app_base_image:1.0
 
   auth_service:
     build:
