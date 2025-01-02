@@ -1,4 +1,4 @@
-FROM advertising_app_base_image
+FROM advertising_app_base_image:latest
 COPY . /apps/main_app
 RUN pip install --no-cache-dir -r /apps/main_app/requirements.txt
 ENV AUTH_URL=http://auth_service:5001

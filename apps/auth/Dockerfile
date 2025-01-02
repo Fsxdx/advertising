@@ -1,4 +1,4 @@
-FROM advertising_app_base_image
+FROM advertising_app_base_image:latest
 COPY . /apps/auth
 RUN pip install --no-cache-dir -r /apps/auth/requirements.txt
 ENV DB_HOST=host.docker.internal
