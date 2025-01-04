@@ -1,18 +1,30 @@
 version: '3.8'
 
 services:
+  base_image:
+    build:
+      context: ./common
+      dockerfile: Dockerfile
+    image: advertising_app_base_image:1.0
+
   auth_service:
     build:
       context: ./auth
+      dockerfile: Dockerfile
     ports:
       - "5001:5001"
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - base_image
 
   main_app:
     build:
       context: ./main_app
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - base_image

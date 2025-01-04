@@ -5,14 +5,13 @@ import logging
 from os import environ
 from typing import TYPE_CHECKING
 
-from flask import Flask, jsonify, request
-
 from apps.auth.models import AuthManager
+from flask import Flask, jsonify, request
 
 if TYPE_CHECKING:
     from werkzeug.wrappers import Response
 app = Flask(__name__)
-app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
+app.secret_key = environ['SECRET_KEY']
 
 # Load the database configuration from a JSON file
 try:

@@ -4,15 +4,14 @@ from functools import reduce
 from os import environ
 from typing import Dict, Set
 
-from flask import Flask, render_template, request, session
-from werkzeug.exceptions import Forbidden
-
 from apps.common.wrappers import login_required, role_required
 from apps.main_app.blueprints.auth import auth_app
 from apps.main_app.blueprints.query import query_app
 from apps.main_app.blueprints.renter import renter_app
 from apps.main_app.blueprints.renter.models import Billboard
 from apps.main_app.blueprints.report import report_app
+from flask import Flask, render_template, session
+from werkzeug.exceptions import Forbidden
 
 app = Flask(__name__)
 
@@ -21,7 +20,7 @@ app.register_blueprint(renter_app, url_prefix="/rent")
 app.register_blueprint(query_app, url_prefix="/query")
 app.register_blueprint(report_app, url_prefix="/report")
 
-app.secret_key = """b!e.*(mi]cQkOR1Wh^oRmzkM#PcL.A"[;cfel/)#NF%CAi+?c<;/:sV@*Tua]V&"""
+app.secret_key = environ['SECRET_KEY']
 
 # Load configuration from JSON files
 try:

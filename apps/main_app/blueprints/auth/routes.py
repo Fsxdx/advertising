@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from os import environ
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 from flask import redirect, render_template, request
 from werkzeug.security import generate_password_hash
@@ -9,9 +9,6 @@ from werkzeug.wrappers import Response
 
 from .blueprint import auth_app
 from .models import SessionManager, authenticate_user, process_api_response
-
-if TYPE_CHECKING:
-    from werkzeug.wrappers import Response
 
 
 @auth_app.route("/", methods=["GET"])
@@ -79,8 +76,9 @@ def auth_register_post_handler() -> str:
         method="post", url=f"{environ['AUTH_URL']}/register_renter", json=data
     )
 
-    if error:
+    if not result:
         return render_template("registration.html", error=error)
+
     return render_template("successful_registration.html")
 
 

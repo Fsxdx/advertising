@@ -1,3 +1,5 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/c51e5ee5624142899d2d738206a48ef9)](https://app.codacy.com/gh/Fsxdx/advertising/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+
 # Outdoor Advertising Management System
 
 This repository contains a web application designed as part of a university project. The application is focused on
